@@ -1,0 +1,7 @@
+{
+    "require": {
+       "slim/slim": "^4.11",
+       "slim/psr7": "^1.6",
+       "blest/blest": "^0.0.1"
+    }
+}

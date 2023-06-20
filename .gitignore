@@ -1,0 +1,47 @@
+# Laravel specific files/folders
+/vendor/
+/node_modules/
+/public/hot
+/public/storage
+/storage/*.key
+/.phpunit.result.cache
+/.idea
+/.vscode
+Homestead.json
+Homestead.yaml
+.env
+.env.backup
+.phpunit.result.cache
+.phpunit-watcher.yml
+Homestead.json
+Homestead.yaml
+
+# Dependency Management
+/composer.phar
+/composer.lock
+/vendor/
+
+# Logs and errors
+/log/
+/error_log
+/php_errorlog
+
+# Local development environment files
+/.env.*
+!.env.example
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Editor/IDE specific files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Testing specific files
+/phpunit.xml
+/tests/
+/phpunit.xml.dist
+/phpunit-coverage-html/
