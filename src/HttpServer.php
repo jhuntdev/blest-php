@@ -40,12 +40,14 @@ class HttpServer {
     } catch (\Exception $error) {
       error_log($error->getMessage());
       header('HTTP/1.1 500 Internal Server Error');
+      header('Content-Type: application/json');
       echo json_encode(['message' => 'Unable to parse JSON body']);
       exit();
     }
 
     if (!is_array($data) || !is_list($data)) {
       header('HTTP/1.1 400 Bad Request');
+      header('Content-Type: application/json');
       echo json_encode(['message' => 'Request body should be a JSON array']);
       exit();
     }
@@ -54,14 +56,17 @@ class HttpServer {
     
     if ($error) {
       header('HTTP/1.1 500 Internal Server Error');
+      header('Content-Type: application/json');
       echo json_encode(['message' => $error->getMessage()]);
       exit();
     } else if ($result) {
       header('HTTP/1.1 200 OK');
+      header('Content-Type: application/json');
       echo json_encode($result);
       exit();
     } else {
       header('HTTP/1.1 500 Internal Server Error');
+      header('Content-Type: application/json');
       echo json_encode(['message' => 'The request handler failed to return anything']);
       exit();
     }
