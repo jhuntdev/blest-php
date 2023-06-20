@@ -181,7 +181,7 @@ class RequestHandler {
 
       $route_handler = array_key_exists($request[1], $this->routes) ? $this->routes[$request[1]] : null;
 
-      if (!is_callable($route_handler)) {
+      if (!is_callable($route_handler) && !is_list($route_handler)) {
         $route_handler = function() {
           throw new \Exception('Route not found');
         };
