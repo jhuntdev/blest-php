@@ -1,20 +1,7 @@
 <?php
 namespace BLEST\BLEST;
 
-if (!function_exists('is_list')) {
-  function is_list($value) {
-    if (!is_array($value)) {
-      return false;
-    }
-    $count = count($value);
-    for ($i = 0; $i < $count; $i++) {
-      if (!array_key_exists($i, $value)) {
-        return false;
-      }
-    }
-    return true;
-  }
-}
+require __DIR__ . '/include/polyfill.php';
 
 function filter_object(array $obj, array $arr): array {
   if (is_array($arr)) {
@@ -78,8 +65,8 @@ class RequestHandler {
   private function route_reducer($handler, array $request, array $context) {
     $id = $request[0];
     $route = $request[1];
-    $params = count($request) > 2 ? $request[2] : null;
-    $selector = count($request) > 3 ? $request[3] : null;
+    $params = count($request) > 2 && is_array($request[2]) ? $request[2] : [];
+    $selector = count($request) > 3 && is_list($request[3]) ? $request[3] : null;
     try {
       if (is_array($handler) && is_list($handler)) {
         $handler_steps = count($handler);
@@ -119,7 +106,7 @@ class RequestHandler {
     }
   }
 
-  private function validate_request(array $request, array $dedupe) {
+  private function validate_request(array $request, array $unique_ids) {
 
     if (
       !is_array($request) ||
@@ -149,7 +136,7 @@ class RequestHandler {
       }
     }
 
-    if (in_array($request[0], $dedupe)) {
+    if (in_array($request[0], $unique_ids)) {
       return 'Request items should have unique IDs';
     }
 
@@ -166,18 +153,18 @@ class RequestHandler {
       return self::handle_error(400, 'Request body should be a JSON array');
     }
 
-    $dedupe = [];
+    $unique_ids = [];
     $promises = [];
 
     foreach ($requests as $request) {
 
-      $validation_error = $this->validate_request($request, $dedupe);
+      $validation_error = $this->validate_request($request, $unique_ids);
       
       if ($validation_error) {
         return self::handle_error(400, $validation_error);
       }
 
-      $dedupe[] = $request[0];
+      $unique_ids[] = $request[0];
 
       $route_handler = array_key_exists($request[1], $this->routes) ? $this->routes[$request[1]] : null;
 

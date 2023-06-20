@@ -1,20 +1,7 @@
 <?php
 namespace BLEST\BLEST;
 
-if (!function_exists('is_list')) {
-  function is_list($value) {
-    if (!is_array($value)) {
-      return false;
-    }
-    $count = count($value);
-    for ($i = 0; $i < $count; $i++) {
-      if (!array_key_exists($i, $value)) {
-        return false;
-      }
-    }
-    return true;
-  }
-}
+require __DIR__ . '/include/polyfill.php';
 
 class EventEmitter {
   private $listeners = [];
@@ -115,9 +102,9 @@ class HttpClient {
       if (!$route) {
         return $reject(new \Exception('Route is required'));
       } elseif ($params && !is_array($params)) {
-        return $reject(new \Exception('Params should be an array'));
-      } elseif ($selector && !is_array($selector)) {
-        return $reject(new \Exception('Selector should be an array'));
+        return $reject(new \Exception('Params should be a JSON object'));
+      } elseif ($selector && !is_list($selector)) {
+        return $reject(new \Exception('Selector should be a JSON array'));
       }
 
       $id = uniqid();

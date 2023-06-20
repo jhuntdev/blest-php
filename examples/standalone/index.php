@@ -1,5 +1,6 @@
 <?php
 
+use BLEST\BLEST\HttpServer;
 use BLEST\BLEST\RequestHandler;
 
 require __DIR__ . '/vendor/autoload.php';
@@ -42,14 +43,6 @@ $request_handler = new RequestHandler([
     'fail' => $fail
 ]);
 
-app()->post('/', function () use ($request_handler) {
-    $body = request()->body();
-    [$result, $error] = $request_handler->handle($body);
-    if ($error) {
-        response()->json($error, 500);
-    } else {
-        response()->json($result, 200);
-    }
-});
+$server = new HttpServer($request_handler);
 
-app()->run();
+$server->run();

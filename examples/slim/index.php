@@ -8,7 +8,7 @@ use BLEST\BLEST\RequestHandler;
 
 require __DIR__ . '/vendor/autoload.php';
 
-$hello = function($params, $context) {
+$hello = function() {
     return [
         'hello' => 'world',
         'bonjour' => 'le monde',
@@ -17,7 +17,7 @@ $hello = function($params, $context) {
     ];
 };
 
-$auth = function($params, $context) {
+$auth = function($params, &$context) {
     if ($params['name']) {
         $context['user'] = array(
             'name' => $params['name']
@@ -36,7 +36,7 @@ $greet = function($params, $context) {
     ];
 };
 
-$fail = function($params, $context) {
+$fail = function() {
     throw new Exception('Intentional failure');
 };
 

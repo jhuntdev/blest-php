@@ -1,0 +1,24 @@
+# syntax=docker/dockerfile:1.4
+
+FROM php:apache AS builder
+
+WORKDIR /var/www/html
+EXPOSE 8080
+
+RUN apt update
+RUN apt install -y git
+
+RUN ["php", "-r", "copy('https://getcomposer.org/installer', 'composer-setup.php');"]
+RUN ["php", "-r", "if (hash_file('sha384', 'composer-setup.php') === '55ce33d7678c5a611085589f1f3ddf8b3c52d662cd01d4ba75c0ee0459970c2200a51f492d557530c71c15d8dba01eae') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"]
+RUN ["php", "composer-setup.php"]
+RUN ["php", "-r", "unlink('composer-setup.php');"]
+
+COPY index.php index.php
+
+COPY composer.json composer.json
+RUN ["php", "composer.phar", "update"]
+
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
+RUN echo "Listen 8080" >> /etc/apache2/apache2.conf
+
+CMD ["apache2-foreground"]
