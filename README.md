@@ -18,7 +18,7 @@ To learn more about BLEST, please refer to the white paper: https://jhunt.dev/BL
 Install BLEST PHP with Composer.
 
 ```bash
-composer install blest
+composer require blest/blest
 ```
 
 ## Usage

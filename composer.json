@@ -1,5 +1,6 @@
 {
     "name": "blest/blest",
+    "version": "0.0.1",
     "type": "library",
     "description": "The PHP reference implementation of BLEST (Batch-able, Lightweight, Encrypted State Transfer), an improved communication protocol for web APIs which leverages JSON, supports request batching and selective returns, and provides a modern alternative to REST.",
     "keywords": ["api", "blest", "laravel", "leaf", "lumen", "slim"],
