@@ -3,7 +3,7 @@
 use BLEST\BLEST\HttpServer;
 use BLEST\BLEST\RequestHandler;
 
-// hi
+// hi :)
 
 require __DIR__ . '/vendor/autoload.php';
 

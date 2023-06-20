@@ -26,12 +26,14 @@ class HttpServer {
     header('Access-Control-Allow-Origin: *');
 
     if (!($_SERVER['REQUEST_URI'] == '/' || $_SERVER['REQUEST_URI'] == '')) {
-      header('HTTP/1.1 404 Not Found');
+      $this->response(null, 404);
       exit();
     }
 
-    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-      header('HTTP/1.1 405 Method Not Allowed');
+    if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
+      $this->response(null, 200);
+    } else if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+      $this->response(null, 405);
       exit();
     }
 
@@ -39,38 +41,48 @@ class HttpServer {
       $data = json_decode(file_get_contents('php://input'), true);
     } catch (\Exception $error) {
       error_log($error->getMessage());
-      header('HTTP/1.1 500 Internal Server Error');
-      header('Content-Type: application/json');
-      echo json_encode(['message' => 'Unable to parse JSON body']);
+      $this->response(['message' => 'Unable to parse JSON body'], 400);
       exit();
     }
 
     if (!is_array($data) || !is_list($data)) {
-      header('HTTP/1.1 400 Bad Request');
-      header('Content-Type: application/json');
-      echo json_encode(['message' => 'Request body should be a JSON array']);
+      $this->response(['message' => 'Request body should be a JSON array'], 400);
       exit();
     }
     
     [$result, $error] = $this->request_handler->handle($data, []);
     
     if ($error) {
-      header('HTTP/1.1 500 Internal Server Error');
-      header('Content-Type: application/json');
-      echo json_encode(['message' => $error->getMessage()]);
+      $error_message = $error->getMessage();
+      error_log($error_message);
+      $this->response(['message' => $error_message], 500);
       exit();
     } else if ($result) {
-      header('HTTP/1.1 200 OK');
-      header('Content-Type: application/json');
-      echo json_encode($result);
+      $this->response($result);
       exit();
     } else {
-      header('HTTP/1.1 500 Internal Server Error');
-      header('Content-Type: application/json');
-      echo json_encode(['message' => 'The request handler failed to return anything']);
+      $error_message = 'The request handler failed to return anything';
+      error_log($error_message);
+      $this->response(['message' => $error_message], 500);
       exit();
     }
 
+  }
+
+  private function cors_headers() {
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: POST, OPTIONS');
+    header('Access-Control-Allow-Headers: Origin, Content-Type, Accept');
+  }
+
+  private function response($data, $status_code = 200) {
+    http_response_code($status_code);
+    cors_headers();
+    if ($data) {
+      header('Content-Type: application/json');
+      $json = json_encode($data);
+      echo $json;
+    }
   }
 
 }
