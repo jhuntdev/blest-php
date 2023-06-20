@@ -16,7 +16,7 @@
     },
     "autoload": {
         "psr-4": {
-            "BLEST\\BLEST\\": "src/"
+            "BLEST\\BLEST\\": "src"
         }
     }
   }
