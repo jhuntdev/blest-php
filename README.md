@@ -4,6 +4,8 @@ The PHP reference implementation of BLEST (Batch-able, Lightweight, Encrypted St
 
 To learn more about BLEST, please refer to the white paper: https://jhunt.dev/BLEST%20White%20Paper.pdf
 
+For a front-end implementation in Vue, please visit https://github.com/jhunt/blest-vue
+
 ## Features
 
 - Built on JSON - Reduce parsing time and overhead
