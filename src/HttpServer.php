@@ -27,7 +27,7 @@ class HttpServer {
     }
 
     if (!($request_handler instanceof RequestHandler)) {
-      throw new Exception('The request_handler argument should be an instance of RequestHandler');
+      throw new \Exception('The request_handler argument should be an instance of RequestHandler');
     }
 
     $this->request_handler = $request_handler;
@@ -50,7 +50,7 @@ class HttpServer {
 
     try {
       $data = json_decode(file_get_contents('php://input'), true);
-    } catch (Exception $error) {
+    } catch (\Exception $error) {
       error_log($error->getMessage());
       header('HTTP/1.1 500 Internal Server Error');
       echo json_encode(['message' => 'Unable to parse JSON body']);

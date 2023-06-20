@@ -88,16 +88,16 @@ class RequestHandler {
           if ($i === $handler_steps - 1) {
             $result = $temp_result;
           } else if ($temp_result) {
-            throw new Exception('Middleware should not return anything but may mutate context');
+            throw new \Exception('Middleware should not return anything but may mutate context');
           }
         }
       } else if (is_callable($handler)) {
         $result = $handler($params, $context);
       } else {
-        throw new Exception('Route handler should be either a function or a list of functions');
+        throw new \Exception('Route handler should be either a function or a list of functions');
       }
       if (!is_array($result) || is_list($result)) {
-        throw new Exception('Result should be an object');
+        throw new \Exception('Result should be an object');
       }
       if ($selector) {
         $result = filter_object($result, $selector);
@@ -108,7 +108,7 @@ class RequestHandler {
         $result,
         null
       );
-    } catch (Exception $error) {
+    } catch (\Exception $error) {
       error_log($error->getMessage());
       return array(
         $id,
@@ -183,7 +183,7 @@ class RequestHandler {
 
       if (!is_callable($route_handler)) {
         $route_handler = function() {
-          throw new Exception('Route not found');
+          throw new \Exception('Route not found');
         };
       }
 

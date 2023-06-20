@@ -113,11 +113,11 @@ class HttpClient {
   public function request($route, $params = null, $selector = null) {
     return new Promise(function ($resolve, $reject) use ($route, $params, $selector) {
       if (!$route) {
-        return $reject(new Exception('Route is required'));
+        return $reject(new \Exception('Route is required'));
       } elseif ($params && !is_array($params)) {
-        return $reject(new Exception('Params should be an array'));
+        return $reject(new \Exception('Params should be an array'));
       } elseif ($selector && !is_array($selector)) {
-        return $reject(new Exception('Selector should be an array'));
+        return $reject(new \Exception('Selector should be an array'));
       }
 
       $id = uniqid();
