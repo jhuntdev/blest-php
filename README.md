@@ -30,13 +30,13 @@ Use the `RequestHandler` class to create a request handler suitable for use in a
 This example uses Slim, but you can find examples with other frameworks [here](examples).
 
 ```php
+require __DIR__ . '/vendor/autoload.php';
+
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Middleware\BodyParsingMiddleware;
 use Slim\Factory\AppFactory;
 use BLEST\BLEST\RequestHandler;
-
-require __DIR__ . '/vendor/autoload.php';
 
 $app = AppFactory::create();
 
@@ -84,13 +84,13 @@ $app->run();
 ### HttpServer
 
 ```php
+require __DIR__ . '/vendor/autoload.php';
+
 use BLEST\BLEST\HttpServer;
 use BLEST\BLEST\RequestHandler;
 
-require __DIR__ . '/vendor/autoload.php';
-
 // Create some middleware (optional)
-$authMiddleware = function($params, $context) {
+$authMiddleware = function($params, &$context) {
   if ($params['name']) {
     $context['user'] = [
       'name' => $params['name']
@@ -120,9 +120,9 @@ $server->run();
 ### HttpClient
 
 ```php
-use BLEST\BLEST\HttpClient;
-
 require __DIR__ . '/vendor/autoload.php';
+
+use BLEST\BLEST\HttpClient;
 
 // Create an HTTP client
 $client = new HttpClient('http://localhost:8080', [
