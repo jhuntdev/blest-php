@@ -1,11 +1,9 @@
 <?php
 
+require __DIR__ . '/vendor/autoload.php';
+
 use BLEST\BLEST\HttpServer;
 use BLEST\BLEST\RequestHandler;
-
-// hi :)
-
-require __DIR__ . '/vendor/autoload.php';
 
 $hello = function() {
     return [

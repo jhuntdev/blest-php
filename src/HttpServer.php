@@ -23,8 +23,6 @@ class HttpServer {
 
   public function run() {
 
-    header('Access-Control-Allow-Origin: *');
-
     if (!($_SERVER['REQUEST_URI'] == '/' || $_SERVER['REQUEST_URI'] == '')) {
       $this->response(null, 404);
       exit();
@@ -72,7 +70,7 @@ class HttpServer {
   private function cors_headers() {
     header('Access-Control-Allow-Origin: *');
     header('Access-Control-Allow-Methods: POST, OPTIONS');
-    header('Access-Control-Allow-Headers: Origin, Content-Type, Accept');
+    header('Access-Control-Allow-Headers: Origin, Content-Type, Authorization, Accept');
   }
 
   private function response($data, $status_code = 200) {

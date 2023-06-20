@@ -1,12 +1,12 @@
 <?php
 
+require __DIR__ . '/vendor/autoload.php';
+
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Middleware\BodyParsingMiddleware;
 use Slim\Factory\AppFactory;
 use BLEST\BLEST\RequestHandler;
-
-require __DIR__ . '/vendor/autoload.php';
 
 $hello = function() {
     return [
@@ -48,6 +48,18 @@ $request_handler = new RequestHandler([
 
 $app = AppFactory::create();
 $app->addBodyParsingMiddleware();
+
+$app->options('/', function (Request $request, Response $response, $args) {
+    return $response;
+});
+
+$app->add(function (Request $request, $handler) {
+    $response = $handler->handle($request);
+    return $response
+        ->withHeader('Access-Control-Allow-Origin', '*')
+        ->withHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+        ->withHeader('Access-Control-Allow-Headers', 'Origin, Content-Type, Authorization, Accept');
+});
 
 $app->post('/', function (Request $request, Response $response) use ($request_handler) {
     $body = $request->getParsedBody();

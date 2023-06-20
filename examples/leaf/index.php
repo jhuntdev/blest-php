@@ -1,8 +1,8 @@
 <?php
 
-use BLEST\BLEST\RequestHandler;
-
 require __DIR__ . '/vendor/autoload.php';
+
+use BLEST\BLEST\RequestHandler;
 
 $hello = function() {
     return [
@@ -41,6 +41,13 @@ $request_handler = new RequestHandler([
     'greet' => [$auth, $greet],
     'fail' => $fail
 ]);
+
+$app->add(function ($request, $response) {
+    $response->addHeader('Access-Control-Allow-Origin', '*');
+    $response->addHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    $response->addHeader('Access-Control-Allow-Headers', 'Origin, Content-Type, Authorization, Accept');
+    return $response;
+});
 
 app()->post('/', function () use ($request_handler) {
     $body = request()->body();
