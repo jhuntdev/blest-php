@@ -40,6 +40,10 @@ function filter_object(array $obj, array $arr): array {
 
 class RequestHandler {
 
+  private $routes;
+  private $options;
+  private $route_regex = '/^[a-zA-Z][a-zA-Z0-9_\-\/]*[a-zA-Z0-9_\-]$/';
+
   public function __construct(array $routes, array $options = null) {
 
     if ($options) {
@@ -62,16 +66,13 @@ class RequestHandler {
     ));
   }
 
-  private function route_reducer($handler, array $request, array $context) {
-    $id = $request[0];
-    $route = $request[1];
-    $params = count($request) > 2 && is_array($request[2]) ? $request[2] : [];
-    $selector = count($request) > 3 && is_list($request[3]) ? $request[3] : null;
+  private function route_reducer($handler, array $request_object, array $context) {
+    ['id' => $id, 'route' => $route, 'parameters' => $parameters, 'selector' => $selector] = $request_object;
     try {
       if (is_array($handler) && is_list($handler)) {
         $handler_steps = count($handler);
         for ($i = 0; $i < $handler_steps; $i++) {
-          $temp_result = $handler[$i]($params, $context);
+          $temp_result = $handler[$i]($parameters, $context);
           if ($i === $handler_steps - 1) {
             $result = $temp_result;
           } else if ($temp_result) {
@@ -79,7 +80,7 @@ class RequestHandler {
           }
         }
       } else if (is_callable($handler)) {
-        $result = $handler($params, $context);
+        $result = $handler($parameters, $context);
       } else {
         throw new \Exception('Route handler should be either a function or a list of functions');
       }
@@ -106,47 +107,6 @@ class RequestHandler {
     }
   }
 
-  private function validate_request(array $request, array $unique_ids) {
-
-    if (
-      !is_array($request) ||
-      !is_list($request) ||
-      count($request) < 2 ||
-      gettype($request[0]) !== 'string' ||
-      gettype($request[1]) !== 'string'
-    ) {
-      return 'Request items should be an array with a unique ID and an endpoint';
-    }
-
-    if (isset($request[2])) {
-      if (
-        !is_array($request[2]) ||
-        is_list($request[2])
-      ) {
-        return 'Request item parameters should be a JSON object';
-      }
-    }
-
-    if (isset($request[3])) {
-      if (
-        !is_array($request[3]) ||
-        !is_list($request[3])
-      ) {
-        return 'Request item selector should be a JSON array';
-      }
-    }
-
-    if (in_array($request[0], $unique_ids)) {
-      return 'Request items should have unique IDs';
-    }
-
-    return null;
-
-  }
-
-  private $routes;
-  private $options;
-
   public function handle(array $requests, array $context = []) {
 
     if (!$requests || !is_array($requests) || !is_list($requests)) {
@@ -158,15 +118,53 @@ class RequestHandler {
 
     foreach ($requests as $request) {
 
-      $validation_error = $this->validate_request($request, $unique_ids);
-      
-      if ($validation_error) {
-        return self::handle_error(400, $validation_error);
+      if (!is_array($request) || !is_list($request)) {
+        return handleError(400, 'Request item should be an array');
       }
 
-      $unique_ids[] = $request[0];
+      $id = isset($request[0]) ? $request[0] : null;
+      $route = isset($request[1]) ? $request[1] : null;
+      $parameters = isset($request[2]) ? $request[2] : null;
+      $selector = isset($request[3]) ? $request[3] : null;
 
-      $route_handler = array_key_exists($request[1], $this->routes) ? $this->routes[$request[1]] : null;
+      if (!$id || !is_string($id)) {
+          return handleError(400, 'Request item should have an ID');
+      }
+      if (!$route || !is_string($route)) {
+          return handleError(400, 'Request item should have a route');
+      }
+      if (!preg_match($this->$route_regex, $route)) {
+          $route_length = strlen($route);
+          if ($routeLength < 2) {
+              return handleError(400, 'Request item route should be at least two characters long');
+          } elseif ($route[$route_length - 1] === '/') {
+              return handleError(400, 'Request item route should not end in a forward slash');
+          } elseif (!preg_match('/[a-zA-Z]/', $route[0])) {
+              return handleError(400, 'Request item route should start with a letter');
+          } else {
+              return handleError(400, 'Request item route should contain only letters, numbers, dashes, underscores, and forward slashes');
+          }
+      }
+      if ($parameters && !is_array($parameters)) {
+          return handleError(400, 'Request item parameters should be a JSON object');
+      }
+      if ($selector && !is_list($selector)) {
+          return handleError(400, 'Request item selector should be a JSON array');
+      }
+
+      if (in_array($id, $uniqueIds)) {
+          return handleError(400, 'Request items should have unique IDs');
+      }
+      $uniqueIds[] = $id;
+
+      $request_object = [
+          'id' => $id,
+          'route' => $route,
+          'parameters' => $parameters,
+          'selector' => $selector
+      ];
+
+      $route_handler = array_key_exists($route, $this->routes) ? $this->routes[$route] : null;
 
       if (!is_callable($route_handler) && !is_list($route_handler)) {
         $route_handler = function() {
@@ -174,8 +172,8 @@ class RequestHandler {
         };
       }
 
-      $bound_handler = function() use ($route_handler, $request, $context) {
-        return $this->route_reducer($route_handler, $request, $context);
+      $bound_handler = function() use ($route_handler, $request_object, $context) {
+        return $this->route_reducer($route_handler, $request_object, $context);
       };
 
       $promises[] = $bound_handler;

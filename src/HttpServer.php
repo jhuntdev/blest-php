@@ -75,7 +75,7 @@ class HttpServer {
 
   private function response($data, $status_code = 200) {
     http_response_code($status_code);
-    cors_headers();
+    $this->cors_headers();
     if ($data) {
       header('Content-Type: application/json');
       $json = json_encode($data);

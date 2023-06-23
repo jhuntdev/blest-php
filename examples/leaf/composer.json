@@ -2,6 +2,6 @@
     "require": {
        "leafs/leaf": "^3.4",
        "leafs/cors": "^1.1",
-       "blest/blest": "^0.0.1"
+       "blest/blest": "^0.0.2"
     }
 }

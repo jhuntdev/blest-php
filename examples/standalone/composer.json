@@ -1,5 +1,5 @@
 {
     "require": {
-       "blest/blest": "^0.0.1"
+       "blest/blest": "^0.0.2"
     }
 }
