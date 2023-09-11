@@ -6,7 +6,7 @@ use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Slim\Middleware\BodyParsingMiddleware;
 use Slim\Factory\AppFactory;
-use BLEST\BLEST\RequestHandler;
+use BLEST\BLEST\Router;
 
 $hello = function() {
     return [
@@ -40,11 +40,11 @@ $fail = function() {
     throw new Exception('Intentional failure');
 };
 
-$request_handler = new RequestHandler([
-    'hello' => $hello,
-    'greet' => [$auth, $greet],
-    'fail' => $fail
-]);
+$router = new Router();
+$router->route('hello', $hello);
+$router->route('fail', $fail);
+$router->use($auth);
+$router->route('greet', $greet);
 
 $app = AppFactory::create();
 $app->addBodyParsingMiddleware();
@@ -61,9 +61,12 @@ $app->add(function (Request $request, $handler) {
         ->withHeader('Access-Control-Allow-Headers', 'Origin, Content-Type, Authorization, Accept');
 });
 
-$app->post('/', function (Request $request, Response $response) use ($request_handler) {
+$app->post('/', function (Request $request, Response $response) use ($router) {
     $body = $request->getParsedBody();
-    [$result, $error] = $request_handler->handle($body);
+    $context = [
+      'headers' => $request->getHeaders()
+    ];
+    [$result, $error] = $router->handle($body, $context);
     if ($error) {
         $response->getBody()->write(json_encode($error));
         return $response->withHeader('Content-Type', 'application/json')->withStatus(500);

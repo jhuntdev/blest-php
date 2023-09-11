@@ -2,7 +2,7 @@
 
 require __DIR__ . '/vendor/autoload.php';
 
-use BLEST\BLEST\RequestHandler;
+use BLEST\BLEST\Router;
 
 $hello = function() {
     return [
@@ -36,11 +36,11 @@ $fail = function() {
     throw new Exception('Intentional failure');
 };
 
-$request_handler = new RequestHandler([
-    'hello' => $hello,
-    'greet' => [$auth, $greet],
-    'fail' => $fail
-]);
+$router = new Router();
+$router->route('hello', $hello);
+$router->route('fail', $fail);
+$router->use($auth);
+$router->route('greet', $greet);
 
 $app->add(function ($request, $response) {
     $response->addHeader('Access-Control-Allow-Origin', '*');
@@ -49,9 +49,12 @@ $app->add(function ($request, $response) {
     return $response;
 });
 
-app()->post('/', function () use ($request_handler) {
+app()->post('/', function () use ($router) {
     $body = request()->body();
-    [$result, $error] = $request_handler->handle($body);
+    $context = [
+        'headers' => request()->headers()
+    ];
+    [$result, $error] = $router->handle($body);
     if ($error) {
         response()->json($error, 500);
     } else {

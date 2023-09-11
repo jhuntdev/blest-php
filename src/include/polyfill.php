@@ -1,4 +1,5 @@
 <?php
+
 if (!function_exists('is_list')) {
   function is_list($value) {
     if (!is_array($value)) {

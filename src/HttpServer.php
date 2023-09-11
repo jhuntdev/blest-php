@@ -1,20 +1,36 @@
 <?php
 namespace BLEST\BLEST;
 
-require __DIR__ . '/include/polyfill.php';
+require_once __DIR__ . '/include/polyfill.php';
 
 class HttpServer {
 
+  private $url;
+  private $http_headers;
   private $request_handler;
 
-  public function __construct(RequestHandler $request_handler, array $options = null) {
+  public function __construct(callable $request_handler, array $options = []) {
 
-    if ($options) {
-      error_log('The "options" argument is not yet used, but may be used in the future');
-    }
+    $this->url = isset($options['url']) ? $options['url'] : '/';
 
-    if (!($request_handler instanceof RequestHandler)) {
-      throw new \Exception('The request_handler argument should be an instance of RequestHandler');
+    $this->http_headers = [
+        'access-control-allow-origin' => isset($options['accessControlAllowOrigin']) ? $options['accessControlAllowOrigin'] : (isset($options['cors']) ? (is_string($options['cors']) ? $options['cors'] : '*') : ''),
+        'content-security-policy' => isset($options['contentSecurityPolicy']) ? $options['contentSecurityPolicy'] : "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests",
+        'cross-origin-opener-policy' => isset($options['crossOriginOpenerPolicy']) ? $options['crossOriginOpenerPolicy'] : 'same-origin',
+        'cross-origin-resource-policy' => isset($options['crossOriginResourcePolicy']) ? $options['crossOriginResourcePolicy'] : 'same-origin',
+        'origin-agent-cluster' => isset($options['originAgentCluster']) ? $options['originAgentCluster'] : '?1',
+        'referrer-policy' => isset($options['referrerPolicy']) ? $options['referrerPolicy'] : 'no-referrer',
+        'strict-transport-security' => isset($options['strictTransportSecurity']) ? $options['strictTransportSecurity'] : 'max-age=15552000; includeSubDomains',
+        'x-content-type-options' => isset($options['xContentTypeOptions']) ? $options['xContentTypeOptions'] : 'nosniff',
+        'x-dns-prefetch-control' => isset($options['xDnsPrefetchOptions']) ? $options['xDnsPrefetchOptions'] : 'off',
+        'x-download-options' => isset($options['xDownloadOptions']) ? $options['xDownloadOptions'] : 'noopen',
+        'x-frame-options' => isset($options['xFrameOptions']) ? $options['xFrameOptions'] : 'SAMEORIGIN',
+        'x-permitted-cross-domain-policies' => isset($options['xPermittedCrossDomainPolicies']) ? $options['xPermittedCrossDomainPolicies'] : 'none',
+        'x-xss-protection' => isset($options['xXssProtection']) ? $options['xXssProtection'] : '0'
+    ];
+
+    if (!is_callable($request_handler)) {
+      throw new \Exception('The request handler should be callable');
     }
 
     $this->request_handler = $request_handler;
@@ -23,7 +39,7 @@ class HttpServer {
 
   public function run() {
 
-    if (!($_SERVER['REQUEST_URI'] == '/' || $_SERVER['REQUEST_URI'] == '')) {
+    if ($_SERVER['REQUEST_URI'] !== $this->url) {
       $this->response(null, 404);
       exit();
     }
@@ -47,11 +63,13 @@ class HttpServer {
       $this->response(['message' => 'Request body should be a JSON array'], 400);
       exit();
     }
-    
-    [$result, $error] = $this->request_handler->handle($data, []);
-    
+
+    $context = getallheaders();
+
+    [$result, $error] = call_user_func($this->request_handler, $data, $context);
+
     if ($error) {
-      $error_message = $error->getMessage();
+      $error_message = $error['message'];
       error_log($error_message);
       $this->response(['message' => $error_message], 500);
       exit();
@@ -67,15 +85,11 @@ class HttpServer {
 
   }
 
-  private function cors_headers() {
-    header('Access-Control-Allow-Origin: *');
-    header('Access-Control-Allow-Methods: POST, OPTIONS');
-    header('Access-Control-Allow-Headers: Origin, Content-Type, Authorization, Accept');
-  }
-
   private function response($data, $status_code = 200) {
     http_response_code($status_code);
-    $this->cors_headers();
+    foreach ($this->http_headers as $key => $value) {
+      header($key . ': ' . $value);
+    }
     if ($data) {
       header('Content-Type: application/json');
       $json = json_encode($data);
