@@ -60,7 +60,9 @@ function handle_request(array $routes, array $requests, array $context = []) {
         ];
 
         $requestContext = array_merge($context, [
-            'request' => $requestObject,
+            'id' => $id,
+            'route' => $route,
+            'headers' => $headers,
             'time' => time()
         ]);
 
