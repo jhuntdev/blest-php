@@ -20,8 +20,8 @@ function handle_request(array $routes, array $requests, array $context = []) {
         return handle_error(400, 'Request body should be a JSON array');
     }
 
-    $unique_ids = [];
-    $promises = [];
+    $uniqueIds = [];
+    // $promises = [];
 
     foreach ($requests as $request) {
 
@@ -31,8 +31,8 @@ function handle_request(array $routes, array $requests, array $context = []) {
 
         $id = isset($request[0]) ? $request[0] : null;
         $route = isset($request[1]) ? $request[1] : null;
-        $parameters = isset($request[2]) ? $request[2] : null;
-        $selector = isset($request[3]) ? $request[3] : null;
+        $body = isset($request[2]) ? $request[2] : null;
+        $headers = isset($request[3]) ? $request[3] : null;
 
         if (!$id || !is_string($id)) {
             return handle_error(400, 'Request item should have an ID');
@@ -40,39 +40,44 @@ function handle_request(array $routes, array $requests, array $context = []) {
         if (!$route || !is_string($route)) {
             return handle_error(400, 'Request item should have a route');
         }
-        if ($parameters && !is_array($parameters)) {
-            return handle_error(400, 'Request item parameters should be a JSON object');
+        if ($body && !is_array($body)) {
+            return handle_error(400, 'Request item body should be a JSON object');
         }
-        if ($selector && !is_list($selector)) {
-            return handle_error(400, 'Request item selector should be a JSON array');
+        if ($headers && !is_list($headers)) {
+            return handle_error(400, 'Request item headers should be a JSON object');
         }
 
-        if (in_array($id, $unique_ids)) {
+        if (in_array($id, $uniqueIds)) {
             return handle_error(400, 'Request items should have unique IDs');
         }
-        $unique_ids[] = $id;
+        $uniqueIds[] = $id;
 
-        $request_object = [
+        $requestObject = [
             'id' => $id,
             'route' => $route,
-            'parameters' => $parameters,
-            'selector' => $selector
+            'body' => $body,
+            'headers' => $headers
         ];
 
-        $this_route = array_key_exists($route, $routes) ? $routes[$route] : null;
-        $route_handler = $this_route ? $this_route['handler'] : null;
-        $route_timeout = $this_route ? $this_route['timeout'] : 0;
+        $requestContext = array_merge($context, [
+            'request' => $requestObject,
+            'time' => time()
+        ]);
 
-        if (!is_list($route_handler)) {
-            $route_handler = [function() {
+        $thisRoute = array_key_exists($route, $routes) ? $routes[$route] : null;
+        $routeHandler = $thisRoute ? $thisRoute['handler'] : null;
+        $routeTimeout = $thisRoute ? $thisRoute['timeout'] : 0;
+
+        if (!is_list($routeHandler)) {
+            $routeHandler = [function() {
                 throw new \Exception('Route not found');
             }];
         }
 
-        if ($route_timeout) {
-            $results[] = route_reducer_with_timeout($route_handler, $request_object, $context, $route_timeout);
+        if ($routeTimeout) {
+            $results[] = routeReducerWithTimeout($routeHandler, $requestObject, $requestContext, $routeTimeout);
         } else {
-            $results[] = route_reducer($route_handler, $request_object, $context);
+            $results[] = routeReducer($routeHandler, $requestObject, $requestContext);
         }
 
     }
@@ -81,18 +86,18 @@ function handle_request(array $routes, array $requests, array $context = []) {
 
 }
 
-function route_reducer_with_timeout($handler, array $request, array $context, int $timeout = 0) {
+function routeReducerWithTimeout($handler, array $request, array $context, int $timeout = 0) {
     $id = $request['id'];
     $route = $request['route'];
-    $timed_out = false;
-    pcntl_signal(SIGALRM, function () use (&$timed_out) {
-        $timed_out = true;
+    $timedOut = false;
+    pcntl_signal(SIGALRM, function () use (&$timedOut) {
+        $timedOut = true;
     });
     pcntl_alarm(ceil($timeout / 1000));
-    $output = route_reducer($handler, $request, $context);
+    $output = routeReducer($handler, $request, $context);
     pcntl_alarm(0);
     pcntl_signal(SIGALRM, SIG_DFL);
-    if ($timed_out) {
+    if ($timedOut) {
         return [$id, $route, null, ['message' => 'Internal Server Error', 'status' => 500]];
     } else {
         return $output;
@@ -100,11 +105,10 @@ function route_reducer_with_timeout($handler, array $request, array $context, in
 }
 
 
-function route_reducer($handler, array $request, array $context) {
+function routeReducer($handler, array $request, array $context) {
     $id = $request['id'];
     $route = $request['route'];
-    $parameters = $request['parameters'];
-    $selector = $request['selector'];
+    $body = isset($request['body']) ? $request['body'] : [];
     try {
         $result = null;
         $error = null;
@@ -112,28 +116,28 @@ function route_reducer($handler, array $request, array $context) {
             $handler_steps = count($handler);
             for ($i = 0; $i < $handler_steps; $i++) {
                 $reflection = new \ReflectionFunction($handler[$i]);
-                $num_args = $reflection->getNumberOfParameters();
+                $numArgs = $reflection->getNumberOfParameters();
                 if ($error) {
-                    if ($num_args <= 2) continue;
+                    if ($numArgs <= 2) continue;
                 } else {
-                    if ($num_args > 2) continue;
+                    if ($numArgs > 2) continue;
                 }
                 try {
                     if ($error) {
-                        $temp_result = $handler[$i]($parameters, $context, $error);
+                        $tempResult = $handler[$i]($body, $context, $error);
                     } else {
-                        $temp_result = $handler[$i]($parameters, $context);
+                        $tempResult = $handler[$i]($body, $context);
                     }
                 } catch (\Exception $temp_err) {
                     if (!$error) {
                         $error = $temp_err;
                     }
                 }
-                if (!$error && $temp_result) {
+                if (!$error && $tempResult) {
                     if ($result) {
                         throw new \Exception('Internal Server Error');
                     } else {
-                        $result = $temp_result;
+                        $result = $tempResult;
                     }
                 }
             }
@@ -141,16 +145,16 @@ function route_reducer($handler, array $request, array $context) {
             throw new \Exception('Route handler should be a list of functions');
         }
         if ($error) {
-            $response_error = assemble_error($error);
-            return [$id, $route, null, $response_error];
+            $responseError = assemble_error($error);
+            return [$id, $route, null, $responseError];
         }
         if (!$result || !is_array($result) || is_list($result)) {
             // echo "The route \"$route\" did not return a result object\n";
             return [$id, $route, null, ['message' => 'Internal Server Error', 'status' => 500]];
         }
-        if ($selector) {
-            $result = filter_object($result, $selector);
-        }
+        // if ($selector) {
+        //     $result = filter_object($result, $selector);
+        // }
         return array(
             $id,
             $route,
@@ -158,8 +162,8 @@ function route_reducer($handler, array $request, array $context) {
             null
         );
     } catch (\Exception $error) {
-        $response_error = assemble_error($error);
-        return [$id, $route, null, $response_error];
+        $responseError = assemble_error($error);
+        return [$id, $route, null, $responseError];
     }
 }
 
@@ -171,22 +175,22 @@ function assemble_error($error) {
             'stack' => $error->getTrace(),
         ];
     }
-    $response_error = array(
+    $responseError = array(
         'message' => isset($error['message']) ? $error['message'] : 'Internal Server Error',
         'status' => isset($error['status']) ? $error['status'] : 500,
     );
 
     if (isset($error['code']) && !!$error['code']) {
-        $response_error['code'] = $error['code'];
+        $responseError['code'] = $error['code'];
     }
 
     if (isset($error['data']) && !!$error['data']) {
-        $response_error['data'] = $error['data'];
+        $responseError['data'] = $error['data'];
     }
 
     if (isset($_ENV['APP_ENV']) && $_ENV['APP_ENV'] !== 'production' && isset($error['stack'])) {
-        $response_error['stack'] = $error['stack'];
+        $responseError['stack'] = $error['stack'];
     }
 
-    return $response_error;
+    return $responseError;
 }

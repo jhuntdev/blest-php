@@ -71,8 +71,7 @@ class Router {
         $this->routes[$route] = [
             'handler' => array_merge($this->middleware, $handlers, $this->afterware),
             'description' => null,
-            'parameters' => null,
-            'result' => null,
+            'schema' => null,
             'visible' => $this->introspection,
             'validate' => false,
             'timeout' => $this->timeout
@@ -97,18 +96,11 @@ class Router {
             $this->routes[$route]['description'] = $config->description;
         }
 
-        if (isset($config->parameters)) {
-            if ($config->parameters && !is_object($config->parameters)) {
-                throw new \Exception('Parameters should be a JSON schema');
+        if (isset($config->schema)) {
+            if ($config->schema && !is_object($config->schema)) {
+                throw new \Exception('Schema should be a JSON schema');
             }
-            $this->routes[$route]['parameters'] = $config->parameters;
-        }
-
-        if (isset($config->result)) {
-            if ($config->result && !is_object($config->result)) {
-                throw new \Exception('Result should be a JSON schema');
-            }
-            $this->routes[$route]['result'] = $config->result;
+            $this->routes[$route]['schema'] = $config->schema;
         }
 
         if (isset($config->visible)) {

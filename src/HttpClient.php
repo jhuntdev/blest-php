@@ -5,9 +5,9 @@ require_once __DIR__ . '/include/polyfill.php';
 
 class HttpClient {
   private $url;
-  private $max_batch_size = 1; // PHP is not async
-  private $batch_delay = 0; // PHP is not async
-  private $headers = [];
+  private $maxBatchSize = 1; // PHP is not async
+  private $batchDelay = 0; // PHP is not async
+  private $httpHeaders = [];
   private $timer = false;
   private $queue = [];
   private $emitter;
@@ -16,14 +16,14 @@ class HttpClient {
     $this->url = $url;
     $this->emitter = new EventEmitter();
     if ($options) {
-      if (array_key_exists('max_batch_size', $options)) {
-        $this->max_batch_size = $options['max_batch_size'];
+      if (array_key_exists('maxBatchSize', $options)) {
+        $this->maxBatchSize = $options['maxBatchSize'];
       }
-      if (array_key_exists('batch_delay', $options)) {
-        $this->batch_delay = $options['batch_delay'];
+      if (array_key_exists('batchDelay', $options)) {
+        $this->batchDelay = $options['batchDelay'];
       }
-      if (array_key_exists('headers', $options)) {
-        $this->headers = $options['headers'];
+      if (array_key_exists('httpHeaders', $options)) {
+        $this->httpHeaders = $options['httpHeaders'];
       }
     }
   }
@@ -34,26 +34,26 @@ class HttpClient {
   }
 
   private function process() {
-    $new_queue = array_slice($this->queue, 0, $this->max_batch_size);
-    $this->queue = array_slice($this->queue, $this->max_batch_size);
+    $new_queue = array_slice($this->queue, 0, $this->maxBatchSize);
+    $this->queue = array_slice($this->queue, $this->maxBatchSize);
     
     if (empty($this->queue)) {
       $this->timer = false;
     } else {
       $this->timer = true;
-      $this->delay([$this, 'process'], $this->batch_delay);
+      $this->delay([$this, 'process'], $this->batchDelay);
     }
     
     $post_data = json_encode($new_queue);
-    $headers = $this->headers;
-    $headers['Accept'] = 'application/json';
-    $headers['Content-Type'] = 'application/json';
+    $httpHeaders = $this->httpHeaders;
+    $httpHeaders['Accept'] = 'application/json';
+    $httpHeaders['Content-Type'] = 'application/json';
     
     $options = [
       'http' => [
         'header' => implode("\r\n", array_map(function ($key, $value) {
           return $key . ': ' . $value;
-        }, array_keys($headers), $headers)),
+        }, array_keys($httpHeaders), $httpHeaders)),
         'method' => 'POST',
         'content' => $post_data,
       ],
@@ -69,9 +69,9 @@ class HttpClient {
         $this->emitter->emit($q[0], null, $error_message);
       }
     } else {
-      $response_json = json_decode($response, true);
-      if ($response_json !== null) {
-        foreach ($response_json as $r) {
+      $responseJson = json_decode($response, true);
+      if ($responseJson !== null) {
+        foreach ($responseJson as $r) {
           $this->emitter->emit($r[0], $r[2], $r[3]);
         }
       }
@@ -85,20 +85,20 @@ class HttpClient {
     return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
   }
 
-  public function request(string $route, array $params = null, array $selector = null, callable $callback) {
+  public function request(string $route, array $body = null, array $headers = null, callable $callback) {
     if (empty($route)) {
       throw new \Exception('Route is required');
-    } elseif ($params && !is_array($params)) {
-      throw new \Exception('Params should be an array');
-    } elseif ($selector && !is_list($selector)) {
-      throw new \Exception('Selector should be a list');
+    } elseif ($body && !is_array($body)) {
+      throw new \Exception('Body should be an array');
+    } elseif ($headers && !is_array($headers)) {
+      throw new \Exception('Headers should be an array');
     }
     $id = $this->uuidv4();
     $this->emitter->once($id, $callback);
-    $this->queue[] = [$id, $route, $params, $selector];
+    $this->queue[] = [$id, $route, $body, $headers];
     if (!$this->timer) {
       $this->timer = true;
-      $this->delay([$this, 'process'], $this->batch_delay);
+      $this->delay([$this, 'process'], $this->batchDelay);
     }
   }
 }

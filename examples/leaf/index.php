@@ -4,7 +4,7 @@ require __DIR__ . '/vendor/autoload.php';
 
 use BLEST\BLEST\Router;
 
-$hello = function() {
+$helloController = function() {
     return [
         'hello' => 'world',
         'bonjour' => 'le monde',
@@ -13,36 +13,33 @@ $hello = function() {
     ];
 };
 
-$auth = function($params, &$context) {
-    if ($params['name']) {
-        $context['user'] = array(
-            'name' => $params['name']
-        );
+$authMiddleware = function($body, &$context) {
+    if (isset($context['headers']['auth']) && $context['headers']['auth'] === 'myToken') {
+        $context['user'] = [
+          // user info for example
+        ];
     } else {
         throw new Exception('Unauthorized');
     }
 };
 
-$greet = function($params, $context) {
-    if (!$context['user']['name']) {
-        throw new Exception('Unauthorized');
-    }
+$greetController = function($body, $context) {
     return [
-        'geeting' => 'Hi, ' . $context['user']['name'] . '!'
+        'geeting' => 'Hi, ' . $body['name'] . '!'
     ];
 };
 
-$fail = function() {
+$failController = function() {
     throw new Exception('Intentional failure');
 };
 
 $router = new Router();
-$router->route('hello', $hello);
-$router->route('fail', $fail);
-$router->use($auth);
-$router->route('greet', $greet);
+$router->route('hello', $helloController);
+$router->route('fail', $failController);
+$router->use($authMiddleware);
+$router->route('greet', $greetController);
 
-$app->add(function ($request, $response) {
+app->add(function ($request, $response) {
     $response->addHeader('Access-Control-Allow-Origin', '*');
     $response->addHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     $response->addHeader('Access-Control-Allow-Headers', 'Origin, Content-Type, Authorization, Accept');

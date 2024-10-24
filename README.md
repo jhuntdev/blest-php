@@ -1,6 +1,6 @@
 # BLEST PHP
 
-The PHP reference implementation of BLEST (Batch-able, Lightweight, Encrypted State Transfer), an improved communication protocol for web APIs which leverages JSON, supports request batching and selective returns, and provides a modern alternative to REST. It includes examples for Leaf and Slim.
+The PHP reference implementation of BLEST (Batch-able, Lightweight, Encrypted State Transfer), an improved communication protocol for web APIs which leverages JSON, supports request batching by default, and provides a modern alternative to REST. It includes examples for Leaf and Slim.
 
 To learn more about BLEST, please visit the website: https://blest.jhunt.dev
 
@@ -10,8 +10,7 @@ For a front-end implementation in Vue, please visit https://github.com/jhuntdev/
 
 - Built on JSON - Reduce parsing time and overhead
 - Request Batching - Save bandwidth and reduce load times
-- Compact Payloads - Save more bandwidth
-- Selective Returns - Save even more bandwidth
+- Compact Payloads - Save even more bandwidth
 - Single Endpoint - Reduce complexity and improve data privacy
 - Fully Encrypted - Improve data privacy
 
@@ -36,10 +35,10 @@ use BLEST\BLEST\App;
 $app = new App();
 
 // Create some middleware (optional)
-$authMiddleware = function($params, $context) {
-  if ($params['name']) {
+$authMiddleware = function($body, $context) {
+  if (isset($context['headers']['auth']) && $context['headers']['auth'] === 'myToken') {
     $context['user'] = [
-      'name' => $params['name']
+      // user info for example
     ];
   } else {
     throw new Exception('Unauthorized');
@@ -48,9 +47,9 @@ $authMiddleware = function($params, $context) {
 $app->use($authMiddleware);
 
 // Create a route controller
-$greetController = function($params, $context) {
+$greetController = function($body, $context) {
   return [
-    'greeting' => 'Hi, ' . $context['user']['name]' . '!'
+    'greeting' => 'Hi, ' . $body['name]' . '!'
   ];
 };
 $app->route('greet', $greetController);
@@ -76,10 +75,10 @@ use BLEST\BLEST\Router;
 $router = new Router();
 
 // Create some middleware (optional)
-$authMiddleware = function($params, $context) {
-  if ($params['name']) {
+$authMiddleware = function($body, $context) {
+  if (isset($context['headers']['auth']) && $context['headers']['auth'] === 'myToken') {
     $context['user'] = [
-      'name' => $params['name']
+      // user info for example
     ];
   } else {
     throw new Exception('Unauthorized');
@@ -88,9 +87,9 @@ $authMiddleware = function($params, $context) {
 $router->use($authMiddleware);
 
 // Create a route controller
-$greetController = function($params, $context) {
+$greetController = function($body, $context) {
   return [
-    'greeting' => 'Hi, ' . $context['user']['name]' . '!'
+    'greeting' => 'Hi, ' . $body['name]' . '!'
   ];
 };
 $router->route('greet', $greetController);
@@ -130,13 +129,13 @@ use BLEST\BLEST\HttpClient;
 
 // Create an HTTP client
 $client = new HttpClient('http://localhost:8080', [
-  'headers' => [
+  'httpHeaders' => [
     'Authorization' => 'Bearer token'
   ]
 ]);
 
 // Use the client to make a request
-$client->request('greet', ['name' => 'Steve'], ['greeting']);
+$client->request('greet', ['name' => 'Steve'], ['auth' => 'myToken']);
 ```
 
 ## License

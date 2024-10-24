@@ -15,7 +15,7 @@ class App extends Router {
     }
 
     public function run() {
-        $routes = $this->routes;
+        // $routes = $this->routes;
         $options = $this->options;
         $handler = function(array $requests, array $context = []) {
             return $this->handle($requests, $context);

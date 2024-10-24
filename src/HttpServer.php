@@ -6,14 +6,14 @@ require_once __DIR__ . '/include/polyfill.php';
 class HttpServer {
 
   private $url;
-  private $http_headers;
-  private $request_handler;
+  private $httpHeaders;
+  private $requestHandler;
 
-  public function __construct(callable $request_handler, array $options = []) {
+  public function __construct(callable $requestHandler, array $options = []) {
 
     $this->url = isset($options['url']) ? $options['url'] : '/';
 
-    $this->http_headers = [
+    $this->httpHeaders = [
         'access-control-allow-origin' => isset($options['accessControlAllowOrigin']) ? $options['accessControlAllowOrigin'] : (isset($options['cors']) ? (is_string($options['cors']) ? $options['cors'] : '*') : ''),
         'content-security-policy' => isset($options['contentSecurityPolicy']) ? $options['contentSecurityPolicy'] : "default-src 'self';base-uri 'self';font-src 'self' https: data:;form-action 'self';frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src 'self';script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests",
         'cross-origin-opener-policy' => isset($options['crossOriginOpenerPolicy']) ? $options['crossOriginOpenerPolicy'] : 'same-origin',
@@ -29,11 +29,11 @@ class HttpServer {
         'x-xss-protection' => isset($options['xXssProtection']) ? $options['xXssProtection'] : '0'
     ];
 
-    if (!is_callable($request_handler)) {
+    if (!is_callable($requestHandler)) {
       throw new \Exception('The request handler should be callable');
     }
 
-    $this->request_handler = $request_handler;
+    $this->requestHandler = $requestHandler;
 
   }
 
@@ -66,28 +66,28 @@ class HttpServer {
 
     $context = getallheaders();
 
-    [$result, $error] = call_user_func($this->request_handler, $data, $context);
+    [$result, $error] = call_user_func($this->requestHandler, $data, $context);
 
     if ($error) {
-      $error_message = $error['message'];
-      error_log($error_message);
-      $this->response(['message' => $error_message], 500);
+      $errorMessage = $error['message'];
+      error_log($errorMessage);
+      $this->response(['message' => $errorMessage], 500);
       exit();
     } else if ($result) {
       $this->response($result);
       exit();
     } else {
-      $error_message = 'The request handler failed to return anything';
-      error_log($error_message);
-      $this->response(['message' => $error_message], 500);
+      $errorMessage = 'The request handler failed to return anything';
+      error_log($errorMessage);
+      $this->response(['message' => $errorMessage], 500);
       exit();
     }
 
   }
 
-  private function response($data, $status_code = 200) {
-    http_response_code($status_code);
-    foreach ($this->http_headers as $key => $value) {
+  private function response($data, $statusCode = 200) {
+    http_response_code($statusCode);
+    foreach ($this->httpHeaders as $key => $value) {
       header($key . ': ' . $value);
     }
     if ($data) {

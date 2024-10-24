@@ -1,18 +1,29 @@
 <?php
 
-$route_regex = '/^[a-zA-Z][a-zA-Z0-9_\-\/]*[a-zA-Z0-9]$/';
+$routeRegex = '/^[a-zA-Z][a-zA-Z0-9_\-\/]*[a-zA-Z0-9]$/';
+$systemRouteRegex = '/^_[a-zA-Z][a-zA-Z0-9_\-\/]*[a-zA-Z0-9]$/';
 
-function validate_route($route) {
-    global $route_regex;
+function validateRoute($route, $system = false) {
+    global $routeRegex;
+    global $systemRouteRegex;
 
     if (empty($route)) {
         return 'Route is required';
-    } elseif (!preg_match($route_regex, $route)) {
+    } elseif (!$system && !preg_match($systemRouteRegex, $route)) {
+        $routeLength = strlen($route);
+        if ($routeLength < 3) {
+            return 'System route should be at least three characters long';
+        } elseif ($route[0] !== '_') {
+            return 'System route should start with an underscore';
+        } elseif (!preg_match('/[a-zA-Z0-9]/', $route[$routeLength - 1])) {
+            return 'System route should end with a letter or a number';
+        } else {
+            return 'System route should contain only letters, numbers, dashes, underscores, and forward slashes';
+        }
+    } elseif (!$system && !preg_match($routeRegex, $route)) {
         $routeLength = strlen($route);
         if ($routeLength < 2) {
             return 'Route should be at least two characters long';
-        } elseif ($route[$routeLength - 1] === '/') {
-            return 'Route should not end in a forward slash';
         } elseif (!preg_match('/[a-zA-Z]/', $route[0])) {
             return 'Route should start with a letter';
         } elseif (!preg_match('/[a-zA-Z0-9]/', $route[$routeLength - 1])) {
@@ -35,37 +46,37 @@ function validate_route($route) {
     return false;
 }
 
-function filter_object(array $obj, array $arr): array {
+function filterObject(array $obj, array $arr): array {
     if (is_array($arr)) {
-        $filtered_obj = array();
+        $filteredObj = array();
         foreach ($arr as $key) {
             if (is_string($key)) {
                 if (array_key_exists($key, $obj)) {
-                    $filtered_obj[$key] = $obj[$key];
+                    $filteredObj[$key] = $obj[$key];
                 }
             } elseif (is_array($key)) {
-                $nested_obj = $obj[$key[0]];
-                $nested_arr = $key[1];
-                if (is_list($nested_obj)) {
-                    $filtered_arr = array();
-                    foreach ($nested_obj as $nested) {
-                        $filtered_nested_obj = filter_object($nested, $nested_arr);
-                        if (count($filtered_nested_obj) > 0) {
-                            $filtered_arr[] = $filtered_nested_obj;
+                $nestedObj = $obj[$key[0]];
+                $nestedArr = $key[1];
+                if (is_list($nestedObj)) {
+                    $filteredArr = array();
+                    foreach ($nestedObj as $nested) {
+                        $filteredNestedObj = filterObject($nested, $nestedArr);
+                        if (count($filteredNestedObj) > 0) {
+                            $filteredArr[] = $filteredNestedObj;
                         }
                     }
-                    if (count($filtered_arr) > 0) {
-                        $filtered_obj[$key[0]] = $filtered_arr;
+                    if (count($filteredArr) > 0) {
+                        $filteredObj[$key[0]] = $filteredArr;
                     }
-                } elseif (is_array($nested_obj) && $nested_obj !== null) {
-                    $filtered_nested_obj = filter_object($nested_obj, $nested_arr);
-                    if (count($filtered_nested_obj) > 0) {
-                        $filtered_obj[$key[0]] = $filtered_nested_obj;
+                } elseif (is_array($nestedObj) && $nestedObj !== null) {
+                    $filteredNestedObj = filterObject($nestedObj, $nestedArr);
+                    if (count($filteredNestedObj) > 0) {
+                        $filteredObj[$key[0]] = $filteredNestedObj;
                     }
                 }
             }
         }
-        return $filtered_obj;
+        return $filteredObj;
     }
     return array();
 }
@@ -74,33 +85,33 @@ function filter_object(array $obj, array $arr): array {
 
 // function filterObject($obj, $arr) {
 //     if (is_array($arr)) {
-//         $filtered_obj = [];
+//         $filteredObj = [];
 //         foreach ($arr as $key) {
 //             if (is_string($key) && array_key_exists($key, $obj)) {
-//                 $filtered_obj[$key] = $obj[$key];
+//                 $filteredObj[$key] = $obj[$key];
 //             } elseif (is_array($key)) {
-//                 $nested_obj = $obj[$key[0]];
-//                 $nested_arr = $key[1];
-//                 if (is_array($nested_obj)) {
-//                     $filtered_arr = [];
-//                     foreach ($nested_obj as $item) {
-//                         $filteredNestedObj = filterObject($item, $nested_arr);
+//                 $nestedObj = $obj[$key[0]];
+//                 $nestedArr = $key[1];
+//                 if (is_array($nestedObj)) {
+//                     $filteredArr = [];
+//                     foreach ($nestedObj as $item) {
+//                         $filteredNestedObj = filterObject($item, $nestedArr);
 //                         if (!empty($filteredNestedObj)) {
-//                             $filtered_arr[] = $filteredNestedObj;
+//                             $filteredArr[] = $filteredNestedObj;
 //                         }
 //                     }
-//                     if (!empty($filtered_arr)) {
-//                         $filtered_obj[$key[0]] = $filtered_arr;
+//                     if (!empty($filteredArr)) {
+//                         $filteredObj[$key[0]] = $filteredArr;
 //                     }
-//                 } elseif (is_array($nested_obj) && $nested_obj !== null) {
-//                     $filteredNestedObj = filterObject($nested_obj, $nested_arr);
+//                 } elseif (is_array($nestedObj) && $nestedObj !== null) {
+//                     $filteredNestedObj = filterObject($nestedObj, $nestedArr);
 //                     if (!empty($filteredNestedObj)) {
-//                         $filtered_obj[$key[0]] = $filteredNestedObj;
+//                         $filteredObj[$key[0]] = $filteredNestedObj;
 //                     }
 //                 }
 //             }
 //         }
-//         return $filtered_obj;
+//         return $filteredObj;
 //     }
 //     return $obj;
 // }
