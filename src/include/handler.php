@@ -20,6 +20,7 @@ function handle_request(array $routes, array $requests, array $context = []) {
         return handle_error(400, 'Request body should be a JSON array');
     }
 
+    $batchId = generateUUIDv1();
     $uniqueIds = [];
     // $promises = [];
 
@@ -60,10 +61,10 @@ function handle_request(array $routes, array $requests, array $context = []) {
         ];
 
         $requestContext = array_merge($context, [
-            'id' => $id,
+            'batchId' => $batchId,
+            'requestId' => $id,
             'route' => $route,
-            'headers' => $headers,
-            'time' => time()
+            'headers' => $headers
         ]);
 
         $thisRoute = array_key_exists($route, $routes) ? $routes[$route] : null;

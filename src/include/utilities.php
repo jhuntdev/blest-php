@@ -81,7 +81,37 @@ function filterObject(array $obj, array $arr): array {
     return array();
 }
 
+function generateUUIDv1() {
+    // $node = getNodeIdentifier(); // Get MAC address
+    $timeLow = microtime(true) * 10000 & 0xFFFFFFF; // Get lower 32 bits of current timestamp
+    $timeMid = microtime(true) * 10000 >> 4 & 0xFFFF; // Get middle 16 bits of current timestamp
+    $timeHiAndVersion = microtime(true) * 10000 >> 12 | 1 << 12; // Get higher 16 bits of current timestamp with version number 1
+    return sprintf(
+        '%08x-%04x-%04x-%04x-%012x',
+        $timeLow,
+        $timeMid,
+        $timeHiAndVersion,
+        random_int(pow(16, 12), pow(16, 13) - 1), // $node,
+        random_int(pow(16, 12), pow(16, 13) - 1) // Generate random 48-bit number
+    );
+}
 
+// function getNodeIdentifier() {
+//     $file = '/sys/class/net/eth0/address';
+//     $macAddress = '';
+//     if (file_exists($file)) {
+//         $macAddress = file_get_contents($file);
+//     } else {
+//         $networkInterfaces = network_interfaces();
+//         foreach ($networkInterfaces as $networkInterface) {
+//             if ($networkInterface['flags'] & IFF_BROADCAST) {
+//             $macAddress = $networkInterface['mac'];
+//             break;
+//             }
+//         }
+//     }
+//     return hexdec(str_replace(':', '', $macAddress)) & 0xFFFFFFFFFFFF;
+// }
 
 // function filterObject($obj, $arr) {
 //     if (is_array($arr)) {
