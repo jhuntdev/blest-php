@@ -14,7 +14,7 @@ $helloController = function() {
 };
 
 $authMiddleware = function($body, &$context) {
-    if (isset($context['headers']['auth']) && $context['headers']['auth'] === 'myToken') {
+    if (isset($context['headers']) && $context['headers']['auth'] === 'myToken') {
         $context['user'] = [
           // user info for example
         ];

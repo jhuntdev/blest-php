@@ -11,7 +11,7 @@ For a front-end implementation in Vue, please visit https://github.com/jhuntdev/
 - Built on JSON - Reduce parsing time and overhead
 - Request Batching - Save bandwidth and reduce load times
 - Compact Payloads - Save even more bandwidth
-- Single Endpoint - Reduce complexity and improve data privacy
+- Single Endpoint - Reduce complexity and facilitate introspection
 - Fully Encrypted - Improve data privacy
 
 ## Installation
