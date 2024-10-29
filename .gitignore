@@ -17,9 +17,9 @@ Homestead.json
 Homestead.yaml
 
 # Dependency Management
-/composer.phar
-/composer.lock
-/vendor/
+composer.phar
+composer.lock
+vendor/
 
 # Logs and errors
 /log/
