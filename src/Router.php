@@ -27,6 +27,22 @@ class Router {
         }
     }
 
+    public function use(...$handlers) {
+        foreach ($handlers as $handler) {
+            if (!is_callable($handler)) {
+                throw new \Exception('All arguments should be functions');
+            }
+            $argCount = (new \ReflectionFunction($handler))->getNumberOfParameters();
+            if ($argCount <= 2) {
+                $this->middleware[] = $handler;
+            } else if ($argCount <= 3) {
+                $this->afterware[] = $handler;
+            } else {
+                throw new \Exception('Middleware should have at most three arguments');
+            }
+        }
+    }
+
     public function before(...$handlers) {
         foreach ($handlers as $handler) {
             if (!is_callable($handler)) {
