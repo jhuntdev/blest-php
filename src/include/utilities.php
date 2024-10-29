@@ -1,15 +1,12 @@
 <?php
 
-$routeRegex = '/^[a-zA-Z][a-zA-Z0-9_\-\/]*[a-zA-Z0-9]$/';
-$systemRouteRegex = '/^_[a-zA-Z][a-zA-Z0-9_\-\/]*[a-zA-Z0-9]$/';
-
 function validateRoute($route, $system = false) {
-    global $routeRegex;
-    global $systemRouteRegex;
+    $routeRegex = '/^[a-zA-Z][a-zA-Z0-9_\-\/]*[a-zA-Z0-9]$/';
+    $systemRouteRegex = '/^_[a-zA-Z][a-zA-Z0-9_\-\/]*[a-zA-Z0-9]$/';
 
     if (empty($route)) {
         return 'Route is required';
-    } elseif (!$system && !preg_match($systemRouteRegex, $route)) {
+    } elseif ($system && !preg_match($systemRouteRegex, $route)) {
         $routeLength = strlen($route);
         if ($routeLength < 3) {
             return 'System route should be at least three characters long';

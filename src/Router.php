@@ -12,7 +12,7 @@ class Router {
     private $timeout = 0;
     public $routes = [];
 
-    public function __construct($options) {
+    public function __construct($options = []) {
         if (isset($options['introspection'])) {
             if (!is_bool($options['introspection'])) {
                 throw new \Exception('Introspection should be a boolean');
@@ -27,7 +27,7 @@ class Router {
         }
     }
 
-    public function use(...$handlers) {
+    public function before(...$handlers) {
         foreach ($handlers as $handler) {
             if (!is_callable($handler)) {
                 throw new \Exception('All arguments should be functions');
@@ -35,10 +35,22 @@ class Router {
             $argCount = (new \ReflectionFunction($handler))->getNumberOfParameters();
             if ($argCount <= 2) {
                 $this->middleware[] = $handler;
-            } elseif ($argCount === 3) {
+            } else {
+                throw new \Exception('Middleware should have at most two arguments');
+            }
+        }
+    }
+
+    public function after(...$handlers) {
+        foreach ($handlers as $handler) {
+            if (!is_callable($handler)) {
+                throw new \Exception('All arguments should be functions');
+            }
+            $argCount = (new \ReflectionFunction($handler))->getNumberOfParameters();
+            if ($argCount <= 3) {
                 $this->afterware[] = $handler;
             } else {
-                throw new \Exception('Middleware should have at most three arguments');
+                throw new \Exception('Afterware should have at most three arguments');
             }
         }
     }
@@ -48,7 +60,7 @@ class Router {
         $options = is_callable($last_arg) ? null : $last_arg;
         $handlers = array_slice($args, 0, $options ? -1 : null);
 
-        $route_error = validate_route($route);
+        $route_error = validateRoute($route);
         if ($route_error) {
             throw new \Exception($route_error);
         } elseif (isset($this->routes[$route])) {
@@ -141,11 +153,18 @@ class Router {
             if (in_array($route, $existingRoutes)) {
                 throw new \Exception('Cannot merge duplicate routes: ' . $route);
             } else {
-                $this->routes[$route] = array_merge(
-                    $this->middleware,
-                    $router->routes[$route]['handler'],
-                    $this->afterware
-                );
+                $this->routes[$route] = [
+                    'handler' => array_merge(
+                        $this->middleware,
+                        $router->routes[$route]['handler'],
+                        $this->afterware
+                    ),
+                    'description' => null,
+                    'schema' => null,
+                    'visible' => $router->routes[$route]['introspection'] ?? $this->introspection,
+                    'validate' => false,
+                    'timeout' => $router->routes[$route]['timeout'] ?? $this->timeout
+                ];
                 if (isset($router->routes[$route]['timeout']) || $router->timeout) {
                     $this->routes[$route]['timeout'] = $router->routes[$route]['timeout'] ?? $this->timeout;
                 }
@@ -158,7 +177,7 @@ class Router {
             throw new \Exception('Router is required');
         }
 
-        $prefixError = validate_route($prefix);
+        $prefixError = validateRoute($prefix);
         if ($prefixError) {
             throw new \Exception($prefixError);
         }
@@ -173,16 +192,20 @@ class Router {
         foreach ($newRoutes as $route) {
             $nsRoute = $prefix . '/' . $route;
             if (in_array($nsRoute, $existingRoutes)) {
-                throw new \Exception('Cannot merge duplicate routes: ' . $nsRoute);
+                throw new \Exception('Route name already exists: ' . $nsRoute);
             } else {
-                $this->routes[$nsRoute] = array_merge(
-                    $this->middleware,
-                    $router->routes[$route]['handler'],
-                    $this->afterware
-                );
-                if (isset($router->routes[$route]['timeout']) || $router->timeout) {
-                    $this->routes[$nsRoute]['timeout'] = $router->routes[$route]['timeout'] ?? $this->timeout;
-                }
+                $this->routes[$nsRoute] = [
+                    'handler' => array_merge(
+                        $this->middleware,
+                        $router->routes[$route]['handler'],
+                        $this->afterware
+                    ),
+                    'description' => null,
+                    'schema' => null,
+                    'visible' => $router->routes[$route]['introspection'] ?? $this->introspection,
+                    'validate' => false,
+                    'timeout' => $router->routes[$route]['timeout'] ?? $this->timeout
+                ];
             }
         }
     }

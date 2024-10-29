@@ -41,7 +41,7 @@ Thumbs.db
 *.sublime-workspace
 
 # Testing specific files
-/phpunit.xml
-/tests/
-/phpunit.xml.dist
-/phpunit-coverage-html/
+# /phpunit.xml
+# /tests/
+# /phpunit.xml.dist
+# /phpunit-coverage-html/

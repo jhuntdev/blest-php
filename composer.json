@@ -14,9 +14,12 @@
     "require": {
         "php": ">=7.4"
     },
+    "require-dev": {
+        "phpunit/phpunit": "^11.4"
+    },
     "autoload": {
         "psr-4": {
             "BLEST\\BLEST\\": "src/"
         }
     }
-  }
+}
