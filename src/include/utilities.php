@@ -80,9 +80,9 @@ function filterObject(array $obj, array $arr): array {
 
 function generateUUIDv1() {
     // $node = getNodeIdentifier(); // Get MAC address
-    $timeLow = microtime(true) * 10000 & 0xFFFFFFF; // Get lower 32 bits of current timestamp
-    $timeMid = microtime(true) * 10000 >> 4 & 0xFFFF; // Get middle 16 bits of current timestamp
-    $timeHiAndVersion = microtime(true) * 10000 >> 12 | 1 << 12; // Get higher 16 bits of current timestamp with version number 1
+    $timeLow = round(microtime(true) * 10000) & 0xFFFFFFF; // Get lower 32 bits of current timestamp
+    $timeMid = round(microtime(true) * 10000) >> 4 & 0xFFFF; // Get middle 16 bits of current timestamp
+    $timeHiAndVersion = round(microtime(true) * 10000) >> 12 | 1 << 12; // Get higher 16 bits of current timestamp with version number 1
     return sprintf(
         '%08x-%04x-%04x-%04x-%012x',
         $timeLow,
@@ -162,4 +162,6 @@ function generateUUIDv1() {
 
 //     return $clonedValue;
 // }
-// ?>
+// 
+
+?>

@@ -1,10 +1,10 @@
 <?php
 
 require __DIR__ . '/vendor/autoload.php';
+require __DIR__ . '/blest/Router.php';
 
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-// use Slim\Middleware\BodyParsingMiddleware;
 use Slim\Factory\AppFactory;
 use BLEST\BLEST\Router;
 

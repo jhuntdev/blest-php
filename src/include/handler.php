@@ -44,7 +44,7 @@ function handle_request(array $routes, array $requests, array $context = []) {
         if ($body && !is_array($body)) {
             return handle_error(400, 'Request item body should be a JSON object');
         }
-        if ($headers && !is_list($headers)) {
+        if ($headers && !is_array($headers)) {
             return handle_error(400, 'Request item headers should be a JSON object');
         }
 

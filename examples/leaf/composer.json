@@ -1,7 +1,7 @@
 {
     "require": {
-       "leafs/leaf": "^3.4",
-       "leafs/cors": "^1.1",
-       "blest/blest": "^1.0.0"
+        "leafs/leaf": "*",
+        "leafs/cors": "*",
+        "blest/blest": "*"
     }
 }

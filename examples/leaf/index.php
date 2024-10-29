@@ -4,6 +4,8 @@ require __DIR__ . '/vendor/autoload.php';
 
 use BLEST\BLEST\Router;
 
+$app = new Leaf\App;
+
 $helloController = function() {
     return [
         'hello' => 'world',
@@ -39,19 +41,19 @@ $router->route('fail', $failController);
 $router->use($authMiddleware);
 $router->route('greet', $greetController);
 
-app->add(function ($request, $response) {
+$app->add(function ($request, $response) {
     $response->addHeader('Access-Control-Allow-Origin', '*');
     $response->addHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     $response->addHeader('Access-Control-Allow-Headers', 'Origin, Content-Type, Authorization, Accept');
     return $response;
 });
 
-app()->post('/', function () use ($router) {
+$app->post('/', function () use ($router) {
     $body = request()->body();
     $context = [
-        'headers' => request()->headers()
+        'httpHeaders' => request()->headers()
     ];
-    [$result, $error] = $router->handle($body);
+    [$result, $error] = $router->handle($body, $context);
     if ($error) {
         response()->json($error, 500);
     } else {
@@ -59,4 +61,6 @@ app()->post('/', function () use ($router) {
     }
 });
 
-app()->run();
+$app->cors();
+
+$app->run();
