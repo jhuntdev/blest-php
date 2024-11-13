@@ -1,0 +1,6 @@
+{
+    "require": {
+        "openswoole/core": "*",
+        "blest/blest": "*"
+    }
+}

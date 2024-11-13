@@ -1,0 +1,7 @@
+services:
+  api:
+    build:
+      context: .
+      target: builder
+    ports: 
+      - '8080:8080'
