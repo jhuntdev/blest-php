@@ -1,6 +1,6 @@
 # BLEST PHP
 
-The PHP reference implementation of BLEST (Batch-able, Lightweight, Encrypted State Transfer), an improved communication protocol for web APIs which leverages JSON, supports request batching by default, and provides a modern alternative to REST. It includes examples for Leaf and Slim.
+The PHP reference implementation of BLEST (Batch-able, Lightweight, Encrypted State Transfer), an improved communication protocol for web APIs which leverages JSON, supports request batching by default, and provides a modern alternative to REST. It includes examples for Leaf, Slim, and OpenSwoole.
 
 To learn more about BLEST, please visit the website: https://blest.jhunt.dev
 
