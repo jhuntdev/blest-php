@@ -8,28 +8,20 @@ use OpenSwoole\Http\Response;
 use BLEST\BLEST\Router;
 
 $helloController = function() {
-  return [
-      'hello' => 'world',
-      'bonjour' => 'le monde',
-      'hola' => 'mundo',
-      'hallo' => 'welt'
-  ];
+    $greetingArray = [
+        ['hello' => 'world' ],
+        ['bonjour' => 'le monde' ],
+        ['hola' => 'mundo' ],
+        ['hallo' => 'welt' ]
+    ];
+    $randomIndex = array_rand($greetingArray);
+    return $greetingArray[$randomIndex];
 };
 
-$authMiddleware = function($body, &$context) {
-  if (isset($context['headers']) && $context['headers']['auth'] === 'myToken') {
-      $context['user'] = [
-        // user info for example
-      ];
-  } else {
-      throw new Exception('Unauthorized');
-  }
-};
-
-$greetController = function($body, $context) {
-  return [
-      'geeting' => 'Hi, ' . $body['name'] . '!'
-  ];
+$greetController = function($body) {
+    return [
+        'greeting' => 'Hi, ' . $body['name'] . '!'
+    ];
 };
 
 $failController = function() {

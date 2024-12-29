@@ -24,40 +24,6 @@ composer require blest/blest
 
 ## Usage
 
-The `App` class of this library has an interface similar to Leaf or Slim. It also provides a `Router` class with a `handle` method for use in an existing PHP application and an `HttpClient` class with a `request` method for making BLEST HTTP requests.
-
-```php
-require __DIR__ . '/vendor/autoload.php';
-
-use BLEST\BLEST\App;
-
-// Instantiate an app (or use functional mode: app()->...)
-$app = new App();
-
-// Create some middleware (optional)
-$authMiddleware = function($body, $context) {
-  if (isset($context['headers']['auth']) && $context['headers']['auth'] === 'myToken') {
-    $context['user'] = [
-      // user info for example
-    ];
-  } else {
-    throw new Exception('Unauthorized');
-  }
-};
-$app->use($authMiddleware);
-
-// Create a route controller
-$greetController = function($body, $context) {
-  return [
-    'greeting' => 'Hi, ' . $body['name]' . '!'
-  ];
-};
-$app->route('greet', $greetController);
-
-// Run the app
-$app->run();
-```
-
 ### Router
 
 This example uses Slim, but you can find examples with other frameworks [here](examples).
@@ -75,16 +41,12 @@ use BLEST\BLEST\Router;
 $router = new Router();
 
 // Create some middleware (optional)
-$authMiddleware = function($body, $context) {
-  if (isset($context['headers']['auth']) && $context['headers']['auth'] === 'myToken') {
-    $context['user'] = [
-      // user info for example
-    ];
-  } else {
-    throw new Exception('Unauthorized');
-  }
+$userMiddleware = function($body, $context) {
+  $context['user'] = [
+    // user info for example
+  ];
 };
-$router->use($authMiddleware);
+$app->use($userMiddleware);
 
 // Create a route controller
 $greetController = function($body, $context) {
@@ -92,7 +54,7 @@ $greetController = function($body, $context) {
     'greeting' => 'Hi, ' . $body['name]' . '!'
   ];
 };
-$router->route('greet', $greetController);
+$app->route('greet', $greetController);
 
 // Create the Slim app
 $app = AppFactory::create();
@@ -135,7 +97,7 @@ $client = new HttpClient('http://localhost:8080', [
 ]);
 
 // Use the client to make a request
-$client->request('greet', ['name' => 'Steve'], ['auth' => 'myToken']);
+$client->request('greet', ['name' => 'Steve']);
 ```
 
 ## License

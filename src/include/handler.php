@@ -155,9 +155,9 @@ function routeReducer($handler, array $request, array $context) {
             // echo "The route \"$route\" did not return a result object\n";
             return [$id, $route, null, ['message' => 'Internal Server Error', 'status' => 500]];
         }
-        // if ($selector) {
-        //     $result = filter_object($result, $selector);
-        // }
+        if (isset($request['headers']['_s'])) {
+            $result = filterObject($result, $request['headers']['_s']);
+        }
         return array(
             $id,
             $route,

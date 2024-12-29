@@ -7,27 +7,19 @@ use BLEST\BLEST\Router;
 $app = new Leaf\App;
 
 $helloController = function() {
-    return [
-        'hello' => 'world',
-        'bonjour' => 'le monde',
-        'hola' => 'mundo',
-        'hallo' => 'welt'
+    $greetingArray = [
+        ['hello' => 'world' ],
+        ['bonjour' => 'le monde' ],
+        ['hola' => 'mundo' ],
+        ['hallo' => 'welt' ]
     ];
+    $randomIndex = array_rand($greetingArray);
+    return $greetingArray[$randomIndex];
 };
 
-$authMiddleware = function($body, &$context) {
-    if (isset($context['headers']) && $context['headers']['auth'] === 'myToken') {
-        $context['user'] = [
-          // user info for example
-        ];
-    } else {
-        throw new Exception('Unauthorized');
-    }
-};
-
-$greetController = function($body, $context) {
+$greetController = function($body) {
     return [
-        'geeting' => 'Hi, ' . $body['name'] . '!'
+        'greeting' => 'Hi, ' . $body['name'] . '!'
     ];
 };
 
