@@ -51,7 +51,7 @@ $app->add(function (Request $request, $handler) {
 $app->post('/', function (Request $request, Response $response) use ($router) {
     $body = $request->getParsedBody();
     $context = [
-      'headers' => $request->getHeaders()
+      'httpHeaders' => $request->getHeaders()
     ];
     [$result, $error] = $router->handle($body, $context);
     if ($error) {

@@ -49,7 +49,7 @@ $server->on("request", function (OpenSwoole\Http\Request $request, OpenSwoole\Ht
         if ($request->server['request_method'] === 'POST') {
             $body = json_decode($request->getContent(), true);
             $context = [
-                'http_headers' => $request->header ?: []
+                'httpHeaders' => $request->header ?: []
             ];
             [$result, $error] = $router->handle($body, $context);
             if ($error) {

@@ -66,7 +66,7 @@ $app->addBodyParsingMiddleware();
 $app->post('/', function (Request $request, Response $response) use ($requestHandler) {
   $body = $request->getParsedBody();
   $context = [
-    'headers' => $request->getHeaders()
+    'httpHeaders' => $request->getHeaders()
   ];
   [$result, $error] = $router->handle($body, $context);
   if ($error) {
